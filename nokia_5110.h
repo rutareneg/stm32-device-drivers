@@ -9,6 +9,8 @@
 //7  - SLCK   //синхро
 //8  - LED
 
+#include <stm32f10x.h>
+
 /*
 #define lcd5110_DC       GPIO_Pin_9// D5 d/S   GPIO_Pin_10
 #define lcd5110_RST       GPIO_Pin_8//  D4 reset GPIO_Pin_11
@@ -30,6 +32,7 @@
 //*****************************************************************************
 
 //*****************************************************************************
+
 #define lcd5110_DC_H     GPIO_SetBits(lcd5110_PORT,lcd5110_DC)
 #define lcd5110_DC_L     GPIO_ResetBits(lcd5110_PORT,lcd5110_DC)
 #define lcd5110_RST_H    GPIO_SetBits(lcd5110_PORT,lcd5110_RST)
@@ -71,7 +74,7 @@
 
 #define BIAS        0x10		//опорное напряжение
 #define TC			0x04      //температурный контроль
-#define FSet		0x20
+#define FSet		0x20      //направление авто перемещения курсора, по строке гор. или вертикатьно
 #define VOP			0x80
 #define D_blank		0x08|D_L|D_L    //очистить экран
 #define D_normal	0x08|D_H|E_L		//норм состояние???
@@ -88,6 +91,7 @@ u8 oscl[85];//для бегущей строки
 u8 x_oscl;//текущие координаты бег строки
 u8 i_oscl;//для массива
 //*************************************************************************//
+
 void gpio_spi_Init();
 void lcd_wbyte ( uint8_t data);
 //void lcd_rbyte ();
@@ -97,13 +101,14 @@ void lcd_clear();
 void init_lcd_5110 ();
 void lcd_set_pos (uint8_t  y, uint8_t  x);
 void lcd_set_sector(unsigned char y_pos,unsigned char  x_pos, unsigned char  y_s, unsigned char  x_s, unsigned char *data,_Bool invert);
-void lcd_set_char_5x7 (unsigned char y_pos,unsigned char  x_pos, unsigned char data ,_Bool invert);
-void lcd_set_str_5x7 (unsigned char y_pos,unsigned char  x_pos, unsigned char *data ,_Bool invert);
-void lcd_set_char (unsigned char y_pos,unsigned char  x_pos, unsigned char data ,_Bool invert);
-void lcd_set_st (unsigned char y_pos,unsigned char  x_pos, unsigned char  y_s, unsigned char  x_s, unsigned char *data ,_Bool invert);
-void lcd_set_strs (unsigned char y_pos,unsigned char  x_pos, unsigned char R ,unsigned char *data ,_Bool invert);
+//void lcd_set_char_5x8 (unsigned char y_pos,unsigned char  x_pos, unsigned char data ,_Bool invert);
+//void lcd_set_str_5x8 (unsigned char y_pos,unsigned char  x_pos, unsigned char *data ,_Bool invert);
+void lcd_set_char (unsigned char y_pos,unsigned char  x_pos, /*unsigned*/ char data ,_Bool invert);
+//void lcd_set_st (unsigned char y_pos,unsigned char  x_pos, unsigned char  y_s, unsigned char  x_s, unsigned char *data ,_Bool invert);
+void lcd_set_strs (unsigned char y_pos,unsigned char  x_pos, unsigned char R ,/*unsigned*/ char *data ,_Bool invert);
 void lcd_set_rect (unsigned char y, unsigned char x ,unsigned char l,_Bool invert);//рисуем прямоугольник висотой 8 пикселей
 void Init_Timer2 ();
 void TIM2_IRQHandler ();
 u8  oscl_tr (u32 r, u16 d);
+void oscl_set (u8 y);
 
