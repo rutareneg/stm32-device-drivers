@@ -1,14 +1,14 @@
-#include "stm32f10x.h"
-#include "stm32f10x_gpio.h"
-#include<stm32f10x_rcc.h>
-#include "stm32f10x_conf.h"
+//****************************************************************************************//
+#include "key.h"
+#include "main.h"
 #include "delay.h"
 
-#include "d_7_led.h"
-#include <stdio.h>
+#include <stm32f10x_iwdg.h>
+#include <stm32f10x_rtc.h>
+#include <stm32f10x_gpio.h>
+#include <stm32f10x_rcc.h>
+#include "stm32f10x_conf.h"
 
-#include "main.h"
-#include "key.h"
 /*
 #define     PORT_KEY GPIOB
 #define		PIN_KEY_1 GPIO_Pin_10
@@ -24,10 +24,11 @@
 */
 //u8 keys;  //значение нажатой кнопки
 
-void  key_ini(){
+void  key_ini()
+{
 	key_init();
 	blinc_init();
-	 BIP_init();
+	BIP_init();
 	init_in_out();
 	KEY_D;//кнопки подтянуты в верх D - на минус
 }
@@ -77,7 +78,7 @@ void key_sk()
 }
 
 //********кнопка с задержкой*******************//
-void key_st(u8 T)//время удержания
+void key_st(u8 T)//время удержания кнопки
 {
 	keys = 0;
 	u8 k=0;//ждём пока отпустим кнопку
