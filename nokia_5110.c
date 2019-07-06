@@ -10,12 +10,12 @@
 #include "misc.h"
 
 #include "delay.h"
-#include "ASCII_5x8_ALL.h"
+
 #include "FACII_8_16.h"
 #include "nums15x31.h"
-#include "nums16x24.h"
-#include "nums_j_16x24.h"
 #include "SystemRus6x8.h"
+#include "nums_j_16x24.h"
+
 
 
 
@@ -289,7 +289,7 @@ void gpio_spi_Init()
 					{
 				case 8 :  x_s = SystemRus6x8[0]; y_s = SystemRus6x8[1];break;
 				case 16 : x_s = FACII_8_16[0];  y_s = FACII_8_16[1];break;
-				case 24 : x_s = nums16x24[0];  y_s = nums16x24[1];break;
+				case 24 : x_s = nums_j_16x24[0];  y_s = nums_j_16x24[1];break;
 				case 32 : x_s = nums15x31[0];  y_s = nums15x31[1];break;
 				default : return;
 					}
@@ -398,7 +398,7 @@ void oscl_set (u8 y){
 */
 
 //**************прерывания 2******************/
-//для секундной мигалки
+//
 
 void Init_Timer2 ()
 	{
