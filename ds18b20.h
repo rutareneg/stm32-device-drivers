@@ -1,8 +1,7 @@
 
 
-#include "stm32f10x.h"
-#include "delay.h"
-#include  "stm32f10x_usart.h"
+#include <stm32f10x.h>
+
 
 #define config_ds18b20 0xff
 /***************************************/
@@ -42,13 +41,16 @@ short GET_TEMP_DS18B20(void);
 #define READ_SCRATCHPAD 0xBE //читать содержимое оперативной памят
 #define COPY_SCRATCHPAD 0x48 //копирует содержимое оперативных регистров TH, TL и конфигурации (байты 2, 3 и 4 в EEPROM.
 #define REC_SCRATCHPAD    0xB8 //копирует значения памяти  и конфигурации из EEPROM  в регистры 2, 3, и 4 оперативной памяти, соответственно
+
 #define READ_POWER_SUPPLY 0xB4 //присутствуют ли на шине DS18B20 с паразитным питанием.
 unsigned char code[8];//сюды номер ром код
 unsigned char data[9];//всякие данные
 _Bool   cont_circut; //для определения типа подключения датчика
+u8 skan[];
 
-#define  COF_P  0.0625 //коф приращения датчика  0.5°C, 0.25°C, 0.125°C, и 0.0625°C
-#define  COF_AP  0.125	//коф приращения  для расчёта тревоги
+
+#define COF_P  0.0625 //коф приращения датчика  0.5°C, 0.25°C, 0.125°C, и 0.0625°C
+#define COF_AP  0.125	//коф приращения  для расчёта тревоги
 #define	TL_  data[0]//темпер
 #define	TH_  data[1]//темпер
 #define	ATH_  data[2]//контрольная темпер верхнего придела
@@ -81,4 +83,10 @@ void Get_CFG_USART_DS18B20 (u8 *rom, u8 *dat);
 _Bool Control_circut ();
 unsigned char crc(char *code);
 _Bool crc_check(unsigned char *code);
+
+u8 Skan_1_wire(); //найденые коды устройств в обил ряд
+void Load_bit_skan(u8 i, u8 C);
+void Write_bit_USART_DS18B20(u8 cmd);
+u8 Read_bits_USART_DS18B20(u8 R);//колличество бит для чтения
+
 

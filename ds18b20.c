@@ -1,12 +1,13 @@
 
-#include "stm32f10x.h"
-#include "stm32f10x_gpio.h"
-#include<stm32f10x_rcc.h>
-#include "stm32f10x_conf.h"
-#include "delay.h"
 #include "ds18b20.h"
-#include "stm32f10x_usart.h"
-#include "main.h"
+
+#include <main.h>
+#include <stm32f10x_gpio.h>
+#include <stm32f10x_rcc.h>
+#include <stm32f10x_usart.h>
+
+#include "../delay/delay.h"
+
 
 //#include "lcd_44780.h"
 
@@ -203,7 +204,7 @@ _Bool Reset_USART_DS18B20()//возв 1 если ошибка датчика
                 USART_Init(USART_DS18B20, &USART_InitStructure);
 
          if (0x80<=status && status <=0xE0 )
-        	 return 1;
+        	 {return 1;}
          return 0;
  }
 
@@ -213,12 +214,11 @@ _Bool Control_circut ()
 	else {return 0;}
 	}
 
-void Write_USART_DS18B20(u8 cmd)
+void Write_USART_DS18B20(u8 cmd)//пишем 8 бит
 {	u8 i=0;
 	for(i=0;i<8;i++)
 
-	{	//if (cmd & 0x01){dd = 0xff;}
-		//	else{dd = 0;}
+	{
 		if (cmd & 0x01)USART_SendData(USART_DS18B20,0xFF);
 		else USART_SendData(USART_DS18B20,0);
 		cmd = cmd >> 1;
@@ -227,12 +227,20 @@ void Write_USART_DS18B20(u8 cmd)
 	}
 }
 
+void Write_bit_USART_DS18B20(u8 cmd)//пишем 1 бит
+{
+		if (cmd)USART_SendData(USART_DS18B20,0xFF);
+		else USART_SendData(USART_DS18B20,0);
+		while (USART_GetFlagStatus(USART_DS18B20, USART_FLAG_TC) == RESET);
+		USART_ClearFlag(USART_DS18B20, USART_FLAG_TC);
+}
+
 u8 Read_byt_USART_DS18B20()
 {	u8 dd = 0,i=0;
 USART_ClearFlag(USART_DS18B20, USART_FLAG_TC);
+	USART_ReceiveData (USART_DS18B20);//чистим входящий
 		for(i=0;i<8;i++)
-	{		USART_ReceiveData (USART_DS18B20);
-			USART_SendData(USART_DS18B20,0xff);
+	{		USART_SendData(USART_DS18B20,0xff);
 			while (USART_GetFlagStatus(USART_DS18B20, USART_FLAG_TC) == RESET);
 			USART_ClearFlag(USART_DS18B20, USART_FLAG_TC);
 			if ( USART_ReceiveData (USART_DS18B20) > 0xFC)
@@ -241,8 +249,26 @@ USART_ClearFlag(USART_DS18B20, USART_FLAG_TC);
 	}
 		return dd;
 }
+//***************************************************************************************************************************//
+u8 Read_bits_USART_DS18B20(u8 R)//колличество бит для чтения
+{
+	u8 dd = 0,i=0;
+	USART_ClearFlag(USART_DS18B20, USART_FLAG_TC);
+	USART_ReceiveData (USART_DS18B20);//чистим входящий
+			for(i=0;i<R;i++)
+		{		USART_SendData(USART_DS18B20,0xff);
+				while (USART_GetFlagStatus(USART_DS18B20, USART_FLAG_TC) == RESET);
+				USART_ClearFlag(USART_DS18B20, USART_FLAG_TC);
+				if ( USART_ReceiveData (USART_DS18B20) > 0xFC)
+					dd = ((dd>>1)|0x80);
+				else dd = dd>>1;
+		}
+			return dd;
+}
 
+//******************************************************************************************************************************//
 
+//*****************************************************************************************************************************//
 void Start_USART_DS18B20()
 {	Reset_USART_DS18B20();
 	Write_USART_DS18B20(0xcc);//делать всем
@@ -254,7 +280,6 @@ void Get_Rom_USART_DS18B20 (u8 *rom)
 {	u8 i=0;
 	Reset_USART_DS18B20();
 	Write_USART_DS18B20(READ_ROM);// дай всесь ром
-	USART_ReceiveData (USART_DS18B20);//чистим входящий регистр
 	for( i=0;i < 8;i++)//читаем все 8 байт
 	{(*rom++) = Read_byt_USART_DS18B20();}
 }
@@ -381,11 +406,11 @@ if (!rom){Reset_USART_DS18B20(); Write_USART_DS18B20(0xcc);}// делать всем
 //************************************************************************************************************//
 void GET_RAM_USART_DS18B20(u8 rom[],u8 *dat)// rom-код устройства..dat- туда складываются данные с устройства
  {	u8 i=0;
-    Reset_USART_DS18B20();
+
  	Start_USART_DS18B20();         //Измерить всем
- 	//delay_ms(800);			//ждём пока измерит
- if (!rom){Reset_USART_DS18B20(); Write_USART_DS18B20(0xcc);}// делать всем
- else  {Reset_USART_DS18B20(); Set_Rom_USART_DS18B20 (rom);}	// делай вася(отправляем код железки код железки)
+
+ if (!rom){/*Reset_USART_DS18B20();*/ Write_USART_DS18B20(0xcc);}// делать всем
+ else  {/*Reset_USART_DS18B20();*/ Set_Rom_USART_DS18B20 (rom);}	// делай вася(отправляем код железки код железки)
  	Write_USART_DS18B20(READ_SCRATCHPAD);// отдать оперативу
  	for( i=0;i < 9;i++)//читаем все 9 байт
  		{(*dat++) = Read_byt_USART_DS18B20();}
@@ -447,7 +472,78 @@ void COF_DS18B20 (float COF)
 
         }
 	}
-///*************************************************************//
+//**************************************************************************************************************************************//
+///*********************поик устройств**************************//
+u8 Skan_1_wire()
+{
+u8 bits=0;//2 бита данных
+u8 C=0;//номер бита данных
+u8 R=0;//номер первого мостика
+u8 M[]={0,0,0,0,0,0,0,0,0,0};//моссив для мостиков
+u8 rm=0; //счётчик до 64
+u8 div=0;//колличество устройств
+
+while(1){
+
+				//if(!Reset_USART_DS18B20()){return 0;}//ошибва нет устройств
+				Reset_USART_DS18B20();
+				Write_USART_DS18B20(SEARCH_ROM);//команда читаем ром всех
+while (rm<64)
+	{
+		bits = Read_bits_USART_DS18B20(2);// 2 колличество бит для чтения, читаем 2 бита
+
+		   if(bits < 0xC0)
+		   {//если нет мостика добавляем 0x80 идём на лево по "0", 0х81 -идём по  1
+			if(bits>0) {Write_bit_USART_DS18B20(bits & 0x40); Load_bit_skan(bits & 0x40, C); C++; rm++;}
+			else//если 0 и 0 то мостик, проверяем был ли раньше и куда шло
+				{
+					if(M[R]==0){ M[R]=0x80;
+										Write_bit_USART_DS18B20(0); Load_bit_skan(0, C);}
+					else//мостика нет создаём
+				  {
+					if(M[R]==0x81){Write_bit_USART_DS18B20(1); Load_bit_skan(1, C);}//идём на 1
+					if(M[R]==0x80){Write_bit_USART_DS18B20(0); Load_bit_skan(0, C);}//
+				  }
+			       C++;  rm++;R++;
+				}// нет мостика отправляем то что есть
+
+		   } else {return 0;}//(192/C0) 1и1 (ошибка) нет ответа шине отключаемся
+
+	}
+					div++;//добовляем устройствва
+					rm = 0; // сбросили счётчик битов одгоро ром, счетаем следующий.
+
+						while(M[R-1]==0x81)
+							{
+							M[R-1]=0; R--;//удаляем мостик
+
+							}
+						//if(M[R]==0x81) {M[R]= 0;}
+						if(M[R-1]==0x80) {M[R-1]= 0x81;}//переключаем мостик с 0 на 1
+
+						if(!R){return div;}//все мостики закончились выходим, отправляем колол устройств
+						R=0;
 
 
-//**************************************************************//
+				}
+
+	}//закончить поиск удалить мостики с 1
+
+
+
+
+
+//************************************************************************//
+
+//************************************************************************//
+void Load_bit_skan(u8 i, u8 C) //I значение, R номер бита
+{
+	u8 t=C/8;
+
+	if(i){skan[t]>>=1;
+		skan[t]|=0x80;}
+	else skan[t]>>=1;
+	//skan[t]=skan[t]>>1;
+}
+//************************************************************************//
+
