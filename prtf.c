@@ -1,8 +1,9 @@
-#include "stm32f10x.h"
 #include "prtf.h"
 
+#include <stm32f10x.h>
 
 
+/*
 void _sprtf(char *buf, short d)
 	{	short rz = d;
 			do
@@ -21,7 +22,7 @@ void _sprtff(u8 S, char *buf, float d)//колличество цыфр после запятой
 
 	if (d<0){*buf++='-'; d *= -1;}
 		if(S>0){for(tt=S;tt--;tt>0){d = d*10;}
-				/**buf++;*/ S+=2;}
+				 S+=2;}
 
 	u16 R;
 	R = d;
@@ -43,6 +44,7 @@ void _sprtff(u8 S, char *buf, float d)//колличество цыфр после запятой
 		while (R != 0 );
 
 }
+*/
 
 void _sprtffd(u8 S, unsigned char *buf, float d)// S колличество цыфр после запятой
 {
@@ -101,17 +103,16 @@ void _sprtff16(u8 S, u16 *buf, float d)// S колличество цыфр после запятой
 
 unsigned char  D_To_H(unsigned char H)//переводим в Хекс
 {
-	if(H > 9)
-	{switch(H)
+		switch(H)
 {
-case 10: H='A'; return H;
-case 11: H='B'; return H;
-case 12: H='C'; return H;
-case 13: H='D'; return H;
-case 14: H='E'; return H;
-case 15: H='F'; return H;
+case 10: H='A'; break;
+case 11: H='B'; break;
+case 12: H='C'; break;
+case 13: H='D'; break;
+case 14: H='E'; break;
+case 15: H='F'; break;
+default: H +='0';break;
 }
-	}else H+='0';
 	return H;
 }
 
@@ -122,6 +123,7 @@ void _sprtf16(unsigned char *buf, unsigned char d)
 				*buf++ =D_To_H(d%16);
 				*buf =	0;
 	}
+
 //*************ограничение длинны слова***********************************************//
 
 void chek_str(char *buf, unsigned char d)//d длинна строки в символах
@@ -129,11 +131,12 @@ void chek_str(char *buf, unsigned char d)//d длинна строки в символах
 	while(d--)
 	{	*buf++;
 		if(d == 1){if( *buf == '.'){*buf = ' ';}  }
+		if(d>0){if(*buf == 0)*buf =' '; }
 		if(d == 0){*buf = 0;}
 	}
 }
 
-void chek_str_dir(char *buf, unsigned char d, _Bool dir )//d длинна строки в символах, dir напрдуние вывода
+void chek_str_dir(char *buf, unsigned char d, _Bool dir )//d длинна строки в символах, dir направление вывода
 {
 	if(dir)//** инвертируем направление
 		{u8 i=0; //********длинна слова
