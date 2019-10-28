@@ -81,12 +81,15 @@ void TEMP_CONF_DS18B20 (u16 T,float C,u8 *R);
 void COF_DS18B20 (float COF);//определяем приращение по конфигурации
 void Get_CFG_USART_DS18B20 (u8 *rom, u8 *dat);
 _Bool Control_circut ();
-unsigned char crc(char *code);
-_Bool crc_check(unsigned char *code);
 
+unsigned char chek_crc( unsigned char *mas, unsigned char Len );
+
+
+void prog_USART_byts(u8 *cmd);
+void prog_rw(u8 cmd);
 u8 Skan_1_wire(); //найденые коды устройств в обил ряд
 void Load_bit_skan(u8 i, u8 C);
 void Write_bit_USART_DS18B20(u8 cmd);
 u8 Read_bits_USART_DS18B20(u8 R);//колличество бит для чтения
-
+void Write_byts_USART_1WIRE(u8 *cmd,u8 R);
 

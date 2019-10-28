@@ -214,19 +214,6 @@ _Bool Control_circut ()
 	else {return 0;}
 	}
 
-void Write_USART_DS18B20(u8 cmd)//пишем 8 бит
-{	u8 i=0;
-	for(i=0;i<8;i++)
-
-	{
-		if (cmd & 0x01)USART_SendData(USART_DS18B20,0xFF);
-		else USART_SendData(USART_DS18B20,0);
-		cmd = cmd >> 1;
-		while (USART_GetFlagStatus(USART_DS18B20, USART_FLAG_TC) == RESET);
-		USART_ClearFlag(USART_DS18B20, USART_FLAG_TC);
-	}
-}
-
 void Write_bit_USART_DS18B20(u8 cmd)//пишем 1 бит
 {
 		if (cmd)USART_SendData(USART_DS18B20,0xFF);
@@ -234,6 +221,54 @@ void Write_bit_USART_DS18B20(u8 cmd)//пишем 1 бит
 		while (USART_GetFlagStatus(USART_DS18B20, USART_FLAG_TC) == RESET);
 		USART_ClearFlag(USART_DS18B20, USART_FLAG_TC);
 }
+
+void Write_USART_DS18B20(u8 cmd)//пишем 8 бит
+{   for(u8 i=0;i<8;i++)
+	{
+		if (cmd & 0x01)USART_SendData(USART_DS18B20,0xFF);
+		else USART_SendData(USART_DS18B20,0x0);
+		cmd = cmd >> 1;
+		while (USART_GetFlagStatus(USART_DS18B20, USART_FLAG_TC) == RESET);
+		USART_ClearFlag(USART_DS18B20, USART_FLAG_TC);
+
+	}
+}
+
+void prog_rw_byt(u8 cmd)//пишем 8 бит
+{
+
+	cmd = ~cmd;
+
+	for(u8 i=0;i<8;i++)
+	{
+		if (cmd & 0x01)USART_SendData(USART_DS18B20,0xFF);
+		else USART_SendData(USART_DS18B20,0x0);
+		cmd = cmd >> 1;
+		while (USART_GetFlagStatus(USART_DS18B20, USART_FLAG_TC) == RESET);
+		USART_ClearFlag(USART_DS18B20, USART_FLAG_TC);
+		delay_ms(10);
+	}
+}
+
+void prog_USART_byts(u8 *cmd)//пишем R бит
+
+	{
+		for(u8 i=0;i<8;i++)
+			{
+			prog_rw_byt(*cmd++);
+			}
+	}
+
+
+void Write_byts_USART_1WIRE(u8 *cmd, u8 R)//пишем R бит
+
+{u8 i;
+	for( i=0;i<R;i++)
+		{
+	Write_USART_DS18B20(*cmd++);
+		}
+}
+
 
 u8 Read_byt_USART_DS18B20()
 {	u8 dd = 0,i=0;
@@ -350,55 +385,29 @@ if (!rom){Reset_USART_DS18B20(); Write_USART_DS18B20(0xcc);}// делать всем
 					return CRC_;
 		}
 //**************************************************************************************************************//
-	unsigned char crc(char *code)
+
+
+//*************************************************************************************************************//
+	unsigned char chek_crc( unsigned char *code, unsigned char R )
 	{
-	unsigned char CRC_,i,j,data;
-	for(j=0;j<8;j++)
-	{
-	data = *code++;
-	for(i=0;i<8;i++)
-		{
-		if((CRC_&0x01)^(data&0x01))
-			{
-			CRC_>>=1;
-			CRC_^=0x8c;
-			}
-		else
-			{
-			CRC_>>=1;
-			}
-		data>>=1;
-		}
-	}
-	return CRC_;
+	  unsigned char data,crc,d,byt;
+	  byt=0; crc=0;
+	  do{
+	    data=code[byt];
+	    for(u8 i=0; i<8; i++) {  // счетчик битов в байте
+	      d = crc ^ data;
+	      d &= 1;
+	      crc >>= 1;
+	      data >>= 1;
+	      if( d == 1 ) crc ^= 0x8c; // полином
+	    }
+	    byt++;
+	  } while( byt < R ); // счетчик байтов в массиве
+	  return crc;
 	}
 
 //*************************************************************************************************************//
 
-	_Bool crc_check(unsigned char *code)
-		{
-		unsigned char CRC_,i,j,data;
-		for(j=0;j<9;j++)
-		{
-		data = *code++;
-		for(i=0;i<8;i++)
-			{
-			if((CRC_&0x01)^(data&0x01))
-				{
-				CRC_>>=1;
-				CRC_^=0x8c;
-				}
-			else
-				{
-				CRC_>>=1;
-				}
-			data>>=1;
-			}
-		}
-		if(CRC_ == 0)return 0;
-		else  return 1;
-		}
-//*************************************************************************************************************//
 
 
 
